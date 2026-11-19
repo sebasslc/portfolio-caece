@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="ajax.css">
+
+
+<title>Ejercicio de AJAX</title>
+</head>
+
+<body>
+
+	<h1>Ejercicio de AJAX</h1>
+
+<form action="#">
+    <label for="recurso">URL:</label>
+    <input type="text" id="recurso" size="70" value="index.html" />
+    <input type="button" id="enviar" value="Mostrar contenidos" />
+  </form>
+
+  <div id="principal">
+    <h2>Contenidos del archivo:</h2>
+    <div id="contenidos"></div>
+
+    <h2>Cabeceras HTTP de la respuesta del servidor:</h2>
+    <div id="cabeceras"></div>
+  </div>
+
+  <div id="secundario">
+    <h2>Estados de la petición:</h2>
+    <div id="estados"></div>
+
+    <h2>Código de estado:</h2>
+    <div id="codigo"></div>
+  </div>
+
+<script>
+(function () {
+    "use strict";
+    var recurso = document.getElementById("recurso");
+    var boton = document.getElementById("enviar");
+    var contenidos = document.getElementById("contenidos");
+    var estados = document.getElementById("estados");
+    var codigo = document.getElementById("codigo");
+    var cabeceras = document.getElementById("cabeceras");
+    var nombres = ["0 - UNSENT (no iniciada)", "1 - OPENED (abierta)",
+                   "2 - HEADERS_RECEIVED (cabeceras recibidas)",
+                   "3 - LOADING (recibiendo datos)", "4 - DONE (finalizada)"];
+    boton.addEventListener("click", function () {
+        var url = recurso.value.trim();
+        contenidos.textContent = "";
+        estados.textContent = "";
+        codigo.textContent = "";
+        cabeceras.textContent = "";
+        if (!url) {
+            estados.textContent = "Ingresá una URL para consultar.";
+            return;
+        }
+        var xhr = new XMLHttpRequest();
+        estados.textContent = nombres[0] + "\n";
+        xhr.onreadystatechange = function () {
+            estados.textContent += nombres[xhr.readyState] + "\n";
+            if (xhr.readyState >= 2) {
+                codigo.textContent = xhr.status + " " + xhr.statusText;
+                cabeceras.textContent = xhr.getAllResponseHeaders() || "(sin cabeceras disponibles)";
+            }
+            if (xhr.readyState === 3 || xhr.readyState === 4) {
+                contenidos.textContent = xhr.responseText;
+            }
+        };
+        xhr.onerror = function () {
+            estados.textContent += "Error de red o bloqueo CORS.\n";
+            codigo.textContent = "No se pudo acceder a la respuesta";
+        };
+        xhr.ontimeout = function () {
+            estados.textContent += "Tiempo de espera agotado.\n";
+        };
+        try {
+            xhr.open("GET", url, true);
+            xhr.timeout = 15000;
+            xhr.send();
+        } catch (error) {
+            estados.textContent += "Error: " + error.message;
+        }
+    });
+}());
+</script>
+</body>
+</html>
